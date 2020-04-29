@@ -1,2 +1,18 @@
+# Web Framework
 Django
+
+# Database
 psycopg2
+
+# Security
+argon2-cffi
+django-filter
+django-axes
+django-guardian
+django-oauth-toolkit
+django-cors-middleware
+
+# GraphQL
+django-graphql-jwt
+graphene-django
+django-restql
