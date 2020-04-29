@@ -1,1 +1,7 @@
 server/proxy/logs
+server/api/db.sqlite3
+server/api/api/__pycache__/__init__.cpython-38.pyc
+server/api/api/__pycache__/settings.cpython-38.pyc
+server/api/api/__pycache__/urls.cpython-38.pyc
+server/api/api/__pycache__/wsgi.cpython-38.pyc
+server/api/api/__pycache__/*
