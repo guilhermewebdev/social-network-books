@@ -13,6 +13,8 @@ services:
             DB_NAME: db
             DB_USER: user
             DB_PASSWORD: password
+            DB_HOST: 172.25.20.15
+            DB_PORT: 5432
         networks: 
             db:
                 ipv4_address: 172.25.20.10
