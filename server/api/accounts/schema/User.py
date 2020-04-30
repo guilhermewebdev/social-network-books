@@ -45,12 +45,13 @@ class UserQuery:
     def resolve_me(parent, info):
         return info.context.user
     
-class UserInput(graphene.InputObjectType):
+class UserInputCreate(graphene.InputObjectType):
     username = graphene.String(required=True)
     first_name = graphene.String(required=True)
     last_name = graphene.String(required=True)
     email = graphene.String(required=True)
     password = graphene.String(required=True)
+    terms = graphene.Boolean(required=True)
 
 class UserMutationCreate(graphene.Mutation):
     user = graphene.Field(UserType)
@@ -72,7 +73,7 @@ class UserMutationCreate(graphene.Mutation):
             raise GraphQLError(_('Este usuário já está sendo utilizado'))   
 
     class Arguments:
-        input = UserInput(required=True)
+        input = UserInputCreate(required=True)
 
 class UserInputUpdate(graphene.InputObjectType):
     username = graphene.String()
@@ -94,3 +95,20 @@ class UserMutationUpdate(graphene.Mutation):
             return UserMutationUpdate(user=user)
         except:
             raise GraphQLError(_('Erro ao atualizar o usuário'))
+
+    class Arguments:
+        input = UserInputUpdate(required=True)
+
+class UserMutationDeletion(graphene.Mutation):
+    deleted = graphene.Boolean(required=True)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, **kwargs):
+        try:
+            if(kwargs['sure'] == True):
+                info.context.user.delete()
+                return UserMutationDeletion(deleted=True)
+            return UserMutationDeletion(deleted=False)
+        except:
+            raise GraphQLError(_('Não foi possível excluir o usuário'))
