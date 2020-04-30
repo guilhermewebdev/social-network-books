@@ -9,7 +9,7 @@ import graphql_jwt
 
 User = get_user_model()
 
-class UserType(type.DjangoObjectType):
+class UserType(types.DjangoObjectType):
 
     class Meta:
         model = User
@@ -21,6 +21,7 @@ class UserType(type.DjangoObjectType):
             'is_active',
             'date_joined',
             'groups',
+            'pk',
         )
 
 class UserQuery:
@@ -112,3 +113,14 @@ class UserMutationDeletion(graphene.Mutation):
             return UserMutationDeletion(deleted=False)
         except:
             raise GraphQLError(_('Não foi possível excluir o usuário'))
+
+class UserMutation:
+    create_user = UserMutationCreate.Field(
+        description=_('User creation mutation')
+    )
+    update_user = UserMutationUpdate.Field(
+        description=_('User update mutation')
+    )
+    delete_user = UserMutationDeletion.Field(
+        description=_('User deletion mutation')
+    )

@@ -1,14 +1,17 @@
 import graphene
 from graphene_django.debug import DjangoDebug
 import graphql_jwt
+from accounts import schema as accounts
 
 class Query(
     graphene.ObjectType,
+    accounts.Query,
 ):
     debug = graphene.Field(DjangoDebug, name="_debug")
 
 class Mutation(
     graphene.ObjectType,
+    accounts.Mutation,
 ):
     debug = graphene.Field(DjangoDebug, name="_debug")
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()

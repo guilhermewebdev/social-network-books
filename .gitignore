@@ -1,4 +1,5 @@
 server/proxy/nginx/logs
 server/api/db.sqlite3
 server/api/*/__pycache__
+server/api/*/*/__pycache__
 server/api/static
