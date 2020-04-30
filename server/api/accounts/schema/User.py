@@ -37,8 +37,9 @@ class UserQuery:
     def resolve_user(parent, info, pk):
         return get_object_or_404(User, pk=pk)
 
+    @login_required
     def resolve_users(parent, info, **kwargs):
-        return list(*User.objects.all().iterator())
+        return [*User.objects.all().iterator()]
 
     @login_required
     def resolve_me(parent, info):
