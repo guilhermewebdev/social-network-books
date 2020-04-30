@@ -16,3 +16,6 @@ django-cors-middleware
 django-graphql-jwt
 graphene-django
 django-restql
+
+# Google api
+google-cloud-storage

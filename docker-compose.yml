@@ -15,6 +15,7 @@ services:
             DB_PASSWORD: password
             DB_HOST: 172.25.20.15
             DB_PORT: 5432
+            GOOGLE_APPLICATION_CREDENTIALS: /code/google.json
         networks: 
             db:
                 ipv4_address: 172.25.20.10
