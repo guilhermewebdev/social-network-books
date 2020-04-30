@@ -86,7 +86,7 @@ GRAPHENE = {
     ]
 }
 
-# AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
