@@ -10,6 +10,7 @@ import graphql_jwt
 User = get_user_model()
 
 class UserType(types.DjangoObjectType):
+    pk = graphene.ID()
 
     class Meta:
         model = User
@@ -36,11 +37,8 @@ class UserQuery:
     def resolve_user(parent, info, pk):
         return get_object_or_404(User, pk=pk)
 
-    @login_required
     def resolve_users(parent, info, **kwargs):
-        return get_list_or_404(
-            User
-        )
+        return list(*User.objects.all().iterator())
 
     @login_required
     def resolve_me(parent, info):
@@ -58,20 +56,19 @@ class UserMutationCreate(graphene.Mutation):
     user = graphene.Field(UserType)
 
     @staticmethod
-    @login_required
     def mutate(root, info, **kwargs):
-        try:
-            user = User.create_user(
-                email=kwargs['input'].pop('email'),
-                username=kwargs['input'].pop('username'),
-                password=kwargs['input'].pop('password'),
-            )
-            for (index, content) in kwargs['input']:
-                setattr(user, index, content)
-            user.save()
-            return UserMutationCreate(user=user)
-        except:
-            raise GraphQLError(_('Este usuário já está sendo utilizado'))   
+        # try:
+        user = User.objects.create_user(
+            email=kwargs['input'].pop('email'),
+            username=kwargs['input'].pop('username'),
+            password=kwargs['input'].pop('password'),
+        )
+        for index in kwargs['input']:
+            setattr(user, index, kwargs['input'][index])
+        user.save()
+        return UserMutationCreate(user=user)
+        # except:
+            # raise GraphQLError(_('Este usuário já está sendo utilizado'))   
 
     class Arguments:
         input = UserInputCreate(required=True)
