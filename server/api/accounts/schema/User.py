@@ -45,7 +45,7 @@ class UserQuery:
     def resolve_me(parent, info):
         return info.context.user
     
-class UserInputCreate(graphene.InputObjectType):
+class UserInput(graphene.InputObjectType):
     username = graphene.String(required=True)
     first_name = graphene.String(required=True)
     last_name = graphene.String(required=True)
@@ -64,7 +64,7 @@ class UserMutationCreate(graphene.Mutation):
                 username=kwargs['input'].pop('username'),
                 password=kwargs['input'].pop('password'),
             )
-            for (index, content) in kwargs:
+            for (index, content) in kwargs['input']:
                 setattr(user, index, content)
             user.save()
             return UserMutationCreate(user=user)
@@ -72,4 +72,25 @@ class UserMutationCreate(graphene.Mutation):
             raise GraphQLError(_('Este usuário já está sendo utilizado'))   
 
     class Arguments:
-        input = UserInputCreate(required=True)
+        input = UserInput(required=True)
+
+class UserInputUpdate(graphene.InputObjectType):
+    username = graphene.String()
+    first_name = graphene.String()
+    last_name = graphene.String()
+    email = graphene.String()
+
+class UserMutationUpdate(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    @staticmethod
+    @login_required
+    def mutate(root, info, **kwargs):
+        try:
+            user = info.context.user
+            for (index, content) in kwargs['input']:
+                setattr(user, index, content)
+            user.save(update_fields=dir(kwargs['input']))
+            return UserMutationUpdate(user=user)
+        except:
+            raise GraphQLError(_('Erro ao atualizar o usuário'))
