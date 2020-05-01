@@ -58,18 +58,18 @@ class UserMutationCreate(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, **kwargs):
-        # try:
-        user = User.objects.create_user(
-            email=kwargs['input'].pop('email'),
-            username=kwargs['input'].pop('username'),
-            password=kwargs['input'].pop('password'),
-        )
-        for index in kwargs['input']:
-            setattr(user, index, kwargs['input'][index])
-        user.save()
-        return UserMutationCreate(user=user)
-        # except:
-            # raise GraphQLError(_('Este usuário já está sendo utilizado'))   
+        try:
+            user = User.objects.create_user(
+                email=kwargs['input'].pop('email'),
+                username=kwargs['input'].pop('username'),
+                password=kwargs['input'].pop('password'),
+            )
+            for index in kwargs['input']:
+                setattr(user, index, kwargs['input'][index])
+            user.save()
+            return UserMutationCreate(user=user)
+        except:
+            raise GraphQLError(_('Este usuário já está sendo utilizado'))   
 
     class Arguments:
         input = UserInputCreate(required=True)
