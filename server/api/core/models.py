@@ -61,6 +61,15 @@ class Post(models.Model):
         null=True,
         blank=True,
     )
+    privacy = models.CharField(
+        max_length=3,
+        choices=(
+            ('PUB', _('Público')),
+            ('PRI', _('Privado')),
+            ('FOL', _('Seguidores')),
+        ),
+        verbose_name=_('Privacidade'),
+    )
 
     class Meta:
         verbose_name = _('Postagem')
