@@ -2,10 +2,12 @@ import graphene
 from graphene_django.debug import DjangoDebug
 import graphql_jwt
 from accounts import schema as accounts
+from core import schema as core
 
 class Query(
     graphene.ObjectType,
     accounts.Query,
+    core.Query,
 ):
     debug = graphene.Field(DjangoDebug, name="_debug")
 
