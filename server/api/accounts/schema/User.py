@@ -6,11 +6,16 @@ from django.contrib.auth import get_user_model
 from graphql_jwt.decorators import login_required
 from django.shortcuts import get_object_or_404, get_list_or_404
 import graphql_jwt
+from core.schema.Post import PostConnection
 
 User = get_user_model()
 
 class UserType(types.DjangoObjectType):
     pk = graphene.ID()
+    posts = graphene.ConnectionField(PostConnection)
+
+    def resolve_posts(parent, info, **kwargs):
+        return parent.posts.all()
 
     class Meta:
         model = User
@@ -23,7 +28,8 @@ class UserType(types.DjangoObjectType):
             'date_joined',
             'groups',
             'pk',
-            'followers'
+            'followers',
+            'privacy',
         )
 
 class UserQuery:

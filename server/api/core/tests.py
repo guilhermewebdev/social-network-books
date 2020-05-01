@@ -1,6 +1,8 @@
 from django.test import TestCase
 from .models import Book, Post
 from django.contrib.auth import get_user_model
+from api.schema import schema
+from api.testcase import MyTestCase
 
 User = get_user_model()
 
@@ -42,3 +44,8 @@ class PostTestCase(TestCase):
         )
         post.save()
         assert len(list(user.posts.all())) > 0
+
+class PostGraphqlTestCase(MyTestCase):
+
+    def setUp(self):
+        user = User.objects.create_user(username='test')
