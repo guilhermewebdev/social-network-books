@@ -1,0 +1,68 @@
+version: "3.7"
+
+services: 
+    api:
+        build: 
+            context: ./server/api/
+            dockerfile: Dockerfile
+        restart: always
+        volumes:
+            - ./server/api:/code
+        command: ./manage.py runserver 0.0.0.0:8000
+        environment: 
+            DB_NAME: db
+            DB_USER: user
+            DB_PASSWORD: password
+            DB_HOST: 172.25.20.15
+            DB_PORT: 5432
+            GOOGLE_APPLICATION_CREDENTIALS: /code/google.json
+        networks: 
+            db:
+                ipv4_address: 172.25.20.10
+            backend:
+                ipv4_address: 172.35.10.10
+        depends_on: 
+            - db
+            - proxy
+            
+    db:
+        image: postgres
+        restart: always
+        environment: 
+            POSTGRES_DB: db
+            POSTGRES_USER: user
+            POSTGRES_PASSWORD: password
+        networks:
+            db:
+                ipv4_address: 172.25.20.15
+
+    proxy:
+        image: nginx
+        restart: always
+        volumes: 
+            - ./server/proxy/nginx/conf.d:/etc/nginx/conf.d
+            # - ./server/proxy/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./server/proxy/nginx/logs:/etc/nginx/logs
+        ports:
+            - 80:80
+            - 443:443
+        command: [nginx-debug, '-g', 'daemon off;']
+        environment:
+            NGINX_PORT: 80      
+        networks: 
+            - backend
+        ports: 
+            - 80:80
+            - 443:443
+
+networks: 
+    backend:
+        driver: bridge
+        ipam:
+            config: 
+                - subnet: 172.35.10.1/16
+    db:
+        driver: bridge
+        ipam:
+            config: 
+                - subnet: 172.25.20.1/16
