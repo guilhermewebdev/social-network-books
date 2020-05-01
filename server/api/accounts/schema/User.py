@@ -23,6 +23,7 @@ class UserType(types.DjangoObjectType):
             'date_joined',
             'groups',
             'pk',
+            'followers'
         )
 
 class UserQuery:
@@ -33,14 +34,17 @@ class UserQuery:
     )
     me = graphene.Field(UserType)
 
+    @staticmethod
     @login_required
     def resolve_user(parent, info, pk):
         return get_object_or_404(User, pk=pk)
 
+    @staticmethod
     @login_required
     def resolve_users(parent, info, **kwargs):
-        return [*User.objects.all().iterator()]
+        return User.objects.all().iterator()
 
+    @staticmethod
     @login_required
     def resolve_me(parent, info):
         return info.context.user
@@ -111,6 +115,9 @@ class UserMutationDeletion(graphene.Mutation):
             return UserMutationDeletion(deleted=False)
         except:
             raise GraphQLError(_('Não foi possível excluir o usuário'))
+
+    class Arguments:
+        sure = graphene.Boolean(required=True)
 
 class UserMutation:
     create_user = UserMutationCreate.Field(
