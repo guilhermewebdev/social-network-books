@@ -19,3 +19,6 @@ django-restql
 
 # Google api
 google-cloud-storage
+
+# Data manipulation
+Pillow

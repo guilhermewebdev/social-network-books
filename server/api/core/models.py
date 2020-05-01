@@ -35,3 +35,33 @@ class Book(models.Model):
     class Meta:
         verbose_name = _('Livro')
         verbose_name_plural = _('Livros')
+
+class Post(models.Model):
+    text = models.TextField(
+        verbose_name=_('Texto da postagem'),
+        max_length=2000,
+    )
+    date = models.DateTimeField(
+        verbose_name=_('Data da postagem'),
+        auto_now=True,
+    )
+    updated = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('Última atualização')
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='posts',
+        verbose_name=_('Dono da postagem'),
+    )
+    image = models.ImageField(
+        verbose_name=_('Imagem'),
+        upload_to='media/uploads/',
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _('Postagem')
+        verbose_name_plural = _('Postagens')
