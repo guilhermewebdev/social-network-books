@@ -14,6 +14,7 @@ class PostNodeType(types.DjangoObjectType):
             'updated',
             'user',
             'image',
+            'privacy',
         )
         interfaces = (graphene.Node,)
 
@@ -38,7 +39,8 @@ class Query:
         if info.context.user.is_authenticated:
             return Post.objects.filter(
                 Q(privacy='PUB')|
-                Q(user__followers__in=[info.context.user], privacy='FOL'),
+                Q(user=info.context.user, privacy='PRI')|
+                Q(user__followers__in=[info.context.user], privacy='FOL')
             ).all()
         else:
             return Post.objects.filter(privacy='PUB').all()

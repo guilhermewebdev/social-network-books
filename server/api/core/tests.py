@@ -48,4 +48,47 @@ class PostTestCase(TestCase):
 class PostGraphqlTestCase(MyTestCase):
 
     def setUp(self):
-        user = User.objects.create_user(username='test')
+        self.user = User.objects.create_user(username='test')
+        self.user2 = User.objects.create_user(username='test2')
+        self.user3 = User.objects.create_user(username='test3')
+        self.client.authenticate(self.user)
+        self.user.following.add(self.user3)
+        self.create_posts(self.user)
+        self.create_posts(self.user2)
+        self.create_posts(self.user3)
+
+    def create_posts(self, user):
+        posts = []
+        privacy = ''
+        for l in range(0, 10):
+            if l%2 == 0: privacy = 'PUB'; # 5
+            elif l%3 == 0: privacy = 'PRI'; # 2
+            else: privacy  = 'FOL'; # 3
+            posts.append(
+                Post(
+                    user=user,
+                    text='Lorem ipsum dolor sit amet.',
+                    privacy=privacy,
+                )
+            )
+        Post.objects.bulk_create(posts)
+
+    def test_list(self):        
+        executed = self.client.execute('''
+            query {
+                posts {
+                    edges {
+                        node {
+                            user {
+                                username
+                            }
+                            privacy
+                        }
+                    }
+                }
+            }
+        ''')
+        assert 'data' in executed
+        assert not 'errors' in executed
+        assert len(executed['data']['posts']['edges']) == 15 + 2 + 3
+        
