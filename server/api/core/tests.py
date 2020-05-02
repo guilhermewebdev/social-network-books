@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import Book, Post
+from .models import Book, Post, Comment
 from django.contrib.auth import get_user_model
 from api.schema import schema
 from api.testcase import MyTestCase
@@ -44,6 +44,20 @@ class PostTestCase(TestCase):
         )
         post.save()
         assert len(list(user.posts.all())) > 0
+
+class CommentTestCase(TestCase):
+
+    def test_create(self):
+        userA = User.objects.create_user(username='userA')
+        userB = User.objects.create_user(username='userB')
+
+        post = Post(text='Lorem Ipsum', user=userA)
+        post.save()
+
+        comment = Comment(user=userB, text='Dolores', post=post)
+        comment.save()
+        
+        assert len(post.comments.all()) == 1
 
 class PostGraphqlTestCase(MyTestCase):
 
