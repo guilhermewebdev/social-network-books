@@ -74,3 +74,33 @@ class Post(models.Model):
     class Meta:
         verbose_name = _('Postagem')
         verbose_name_plural = _('Postagens')
+
+class Comment(models.Model):
+    text = models.TextField(
+        verbose_name=_('Comentário'),
+        max_length=1000,
+    )
+    date = models.DateTimeField(
+        verbose_name=_('Data do comentário'),
+        auto_now=True
+    )
+    updated = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('Última atualização')
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name=_('Comentador'),
+    )
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        verbose_name=_('Postagem'),
+        related_name='comments'
+    )
+
+    class Meta:
+        verbose_name = _('Comentário')
+        verbose_name_plural = _('Comentários')
