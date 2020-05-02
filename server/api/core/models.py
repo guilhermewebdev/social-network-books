@@ -104,3 +104,44 @@ class Comment(models.Model):
     class Meta:
         verbose_name = _('Comentário')
         verbose_name_plural = _('Comentários')
+
+class Reaction(models.Model):
+    REACTIONS = (
+        ('LI', _('Gostei')),
+        ('CI', _('Poderia melhorar')),
+        ('FA', _('Fantástico')),
+    )
+    reaction = models.CharField(
+        verbose_name=_('Reação'),
+        max_length=2,
+    )
+    date = models.DateTimeField(
+        verbose_name=_('Data da reação'),
+        auto_now=True
+    )
+    updated = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('Última atualização')
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='reactions',
+        verbose_name=_('Comentador'),
+    )
+
+class PostReaction(Reaction):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        verbose_name=_('Reações'),
+        related_name='reactions'
+    )
+
+class CommentReaction(Reaction):
+    comment = models.ForeignKey(
+        Comment,
+        on_delete=models.CASCADE,
+        verbose_name=_('Reações'),
+        related_name='reactions'
+    )
