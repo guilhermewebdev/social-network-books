@@ -112,3 +112,26 @@ class PostGraphqlTestCase(MyTestCase):
         assert 'data' in executed
         assert not 'errors' in executed
         assert len(executed['data']['posts']['edges']) == 15
+
+    def test_get_one_post_pub(self):
+        pub = Post.objects.filter(privacy='PUB').first()
+        executed = self.client.execute('''
+            query getPost($pk:ID!){
+                post(pk:$pk){
+                    privacy
+                    user {
+                        username
+                    }
+                }
+            }
+        ''', variables={ 'pk': pub.pk })
+        assert executed == {
+            'data': {
+                'post': {
+                    'privacy': 'PUB',
+                    'user': {
+                        'username': pub.user.username
+                    }
+                }
+            }
+        }
