@@ -118,7 +118,7 @@ class PostGraphqlTestCase(MyTestCase):
         ''')
         assert 'data' in executed
         assert not 'errors' in executed
-        assert len(executed['data']['posts']['edges']) == 15 + 2 + 3 + 3
+        assert len(executed['data']['posts']['edges']) == 5 + 2 + 3 + 5 + 3
 
     def test_not_authenticated_list(self):
         self.client.logout()
@@ -380,3 +380,53 @@ class PostGraphqlTestCase(MyTestCase):
 
         assert len(executed['errors']) == 1
         assert executed['errors'][0]['message'] == 'Postagem não encontrada'
+
+class CommentsGraphqlTestCase(MyTestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='test')
+        self.user2 = User.objects.create_user(username='test2')
+        self.user3 = User.objects.create_user(username='test3')
+        self.client.authenticate(self.user)
+        self.user.following.add(self.user3)
+        self.post = Post(text='Lorem Ipsum', user=self.user3, privacy='PUB')
+        self.post.save()
+        self.create_comment(self.user)
+        self.create_comment(self.user)
+        self.create_comment(self.user3)
+        self.create_comment(self.user2)
+        self.create_comment(self.user2)
+        self.create_comment(self.user2)        
+
+    def create_comment(self, user, text='Dolores'):
+        comment = Comment(user=user, text=text, post=self.post)
+        comment.save()
+        return comment
+
+    def test_list(self):
+        executed = self.client.execute('''
+            query {
+                posts {
+                    edges {
+                        node {
+                            date
+                            comments {
+                                edges {
+                                    node {
+                                        text
+                                        date
+                                        user {
+                                            username
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ''')
+        
+        assert not 'errors' in executed
+        assert len(executed['data']['posts']['edges']) == 1
+        assert len(executed['data']['posts']['edges'][0]['node']['comments']['edges']) == 6

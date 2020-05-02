@@ -1,4 +1,4 @@
-from . import Post
+from . import Post, Comment
 
 class Query(Post.Query):
     pass

@@ -10,13 +10,18 @@ from graphene_file_upload.scalars import Upload
 
 from graphql_jwt.decorators import login_required
 
+from . import Comment
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
-class PostNodeType(types.DjangoObjectType):
+class PostNodeType(
+    types.DjangoObjectType,
+    Comment.Query,
+):
 
     class Meta:
         model = Post
@@ -27,6 +32,7 @@ class PostNodeType(types.DjangoObjectType):
             'user',
             'image',
             'privacy',
+            'comments',
         )
         interfaces = (graphene.Node,)
 
@@ -49,15 +55,14 @@ class Query:
     @staticmethod
     def resolve_posts(root, info, **kwargs):
         if info.context.user.is_authenticated:
-            return Post.objects.filter(
-                Q(privacy='PUB')|
+            return list(Post.objects.filter(
                 Q(user=info.context.user, privacy='PRI')|
                 Q(
                     Q(user__followers__in=[info.context.user])|
                     Q(user=info.context.user),
-                    Q(privacy='FOL')
+                    Q(privacy='FOL')|Q(privacy='PUB')
                 )
-            ).all()
+            ).order_by('-date').all().iterator())
         else:
             return Post.objects.filter(privacy='PUB').all()
 
