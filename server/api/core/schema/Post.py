@@ -42,7 +42,11 @@ class Query:
             return Post.objects.filter(
                 Q(privacy='PUB')|
                 Q(user=info.context.user, privacy='PRI')|
-                Q(user__followers__in=[info.context.user], privacy='FOL')
+                Q(
+                    Q(user__followers__in=[info.context.user])|
+                    Q(user=info.context.user),
+                    Q(privacy='FOL')
+                )
             ).all()
         else:
             return Post.objects.filter(privacy='PUB').all()
@@ -55,7 +59,11 @@ class Query:
                     Q(pk=kwargs['pk']),
                     Q(privacy='PUB')|
                     Q(user=info.context.user, privacy='PRI')|
-                    Q(user__followers__in=[info.context.user], privacy='FOL'),
+                    Q(
+                        Q(user__followers__in=[info.context.user])|
+                        Q(user=info.context.user),
+                        Q(privacy='FOL')
+                    ),
                 )
             else:
                 return Post.objects.get(

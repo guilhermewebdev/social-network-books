@@ -90,7 +90,7 @@ class PostGraphqlTestCase(MyTestCase):
         ''')
         assert 'data' in executed
         assert not 'errors' in executed
-        assert len(executed['data']['posts']['edges']) == 15 + 2 + 3
+        assert len(executed['data']['posts']['edges']) == 15 + 2 + 3 + 3
 
     def test_not_authenticated_list(self):
         self.client.logout()
@@ -152,6 +152,29 @@ class PostGraphqlTestCase(MyTestCase):
             'data': {
                 'post': {
                     'privacy': 'PRI',
+                    'user': {
+                        'username': self.user.username
+                    }
+                }
+            }
+        }
+
+    def test_get_one_post_fol(self):
+        fol = Post.objects.filter(privacy='FOL', user=self.user).first()
+        executed = self.client.execute('''
+            query getPost($pk:ID!){
+                post(pk:$pk){
+                    privacy
+                    user {
+                        username
+                    }
+                }
+            }
+        ''', variables={ 'pk': fol.pk })
+        assert executed == {
+            'data': {
+                'post': {
+                    'privacy': 'FOL',
                     'user': {
                         'username': self.user.username
                     }
