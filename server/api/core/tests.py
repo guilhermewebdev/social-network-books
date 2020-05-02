@@ -1,8 +1,9 @@
 from django.test import TestCase
-from .models import Book, Post, Comment
+from .models import Book, Post, Comment, PostReaction, CommentReaction
 from django.contrib.auth import get_user_model
 from api.schema import schema
 from api.testcase import MyTestCase
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -47,17 +48,30 @@ class PostTestCase(TestCase):
 
 class CommentTestCase(TestCase):
 
+    def setUp(self):
+        self.userA = User.objects.create_user(username='userA')
+        self.userB = User.objects.create_user(username='userB')
+
+        self.post = Post(text='Lorem Ipsum', user=self.userA)
+        self.post.save()
+
+        self.comment = Comment(user=self.userB, text='Dolores', post=self.post)
+        self.comment.save()
+
     def test_create(self):
-        userA = User.objects.create_user(username='userA')
-        userB = User.objects.create_user(username='userB')
-
-        post = Post(text='Lorem Ipsum', user=userA)
-        post.save()
-
-        comment = Comment(user=userB, text='Dolores', post=post)
-        comment.save()
+        post_reaction = PostReaction(reaction='LI', user=self.userB, post=self.post)
+        post_reaction.save()
+       
+        comment_reaction = CommentReaction(reaction='LI', user=self.userA, comment=self.comment)
+        comment_reaction.save()
         
-        assert len(post.comments.all()) == 1
+        assert len(self.post.reactions.all()) == 1
+        assert len(self.comment.reactions.all()) == 1
+
+    def test_undefined_reaction(self):
+        undefined_reaction = PostReaction.objects.create(reaction='UN', user=self.userB, post=self.post)
+
+        self.assertRaises(ValidationError, undefined_reaction.full_clean)
 
 class PostGraphqlTestCase(MyTestCase):
 

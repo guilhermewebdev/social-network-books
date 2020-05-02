@@ -1,6 +1,20 @@
 from django.db import models
 from django.utils.translation import gettext as _
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.utils.deconstruct import deconstructible
+
+@deconstructible
+class ChoiceValidator(object):
+    def __init__(self, choices):
+        self.choices = [a for (a, b) in choices]
+
+    def __call__(self, value):
+        if not value in self.choices:
+            raise ValidationError(
+                _('%(value) não é uma opção válida'),
+                params={ 'value': value }
+            )
 
 class Book(models.Model):
     BOOKSHELFS = [
@@ -24,8 +38,9 @@ class Book(models.Model):
     )
     bookshelf = models.CharField(
         max_length=3,
-        choices=BOOKSHELFS,
         verbose_name=_('Estado'),
+        validators=[ChoiceValidator(BOOKSHELFS)],
+        choices=BOOKSHELFS,
     )
     favorite = models.BooleanField(
         verbose_name=_('Favorito'),
@@ -37,6 +52,12 @@ class Book(models.Model):
         verbose_name_plural = _('Livros')
 
 class Post(models.Model):
+    PERMISSIONS = (
+        ('PUB', _('Público')),
+        ('PRI', _('Privado')),
+        ('FOL', _('Seguidores')),
+    )
+
     text = models.TextField(
         verbose_name=_('Texto da postagem'),
         max_length=2000,
@@ -63,12 +84,9 @@ class Post(models.Model):
     )
     privacy = models.CharField(
         max_length=3,
-        choices=(
-            ('PUB', _('Público')),
-            ('PRI', _('Privado')),
-            ('FOL', _('Seguidores')),
-        ),
+        validators=[ChoiceValidator(PERMISSIONS)],
         verbose_name=_('Privacidade'),
+        choices=PERMISSIONS,
     )
 
     class Meta:
@@ -114,6 +132,8 @@ class Reaction(models.Model):
     reaction = models.CharField(
         verbose_name=_('Reação'),
         max_length=2,
+        validators=[ChoiceValidator(REACTIONS)],
+        choices=REACTIONS,
     )
     date = models.DateTimeField(
         verbose_name=_('Data da reação'),

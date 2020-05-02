@@ -29,7 +29,6 @@ class UserType(types.DjangoObjectType):
             'groups',
             'pk',
             'followers',
-            'privacy',
         )
 
 class UserQuery:
