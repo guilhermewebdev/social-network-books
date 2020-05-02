@@ -91,4 +91,24 @@ class PostGraphqlTestCase(MyTestCase):
         assert 'data' in executed
         assert not 'errors' in executed
         assert len(executed['data']['posts']['edges']) == 15 + 2 + 3
-        
+
+    def test_not_authenticated_list(self):
+        self.client.logout()
+        executed = self.client.execute('''
+            query {
+                posts {
+                    edges {
+                        node {
+                            user {
+                                username
+                            }
+                            privacy
+                        }
+                    }
+                }
+            }
+        ''')
+        self.client.authenticate(self.user)
+        assert 'data' in executed
+        assert not 'errors' in executed
+        assert len(executed['data']['posts']['edges']) == 15
