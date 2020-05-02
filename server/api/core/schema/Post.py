@@ -3,6 +3,8 @@ from graphene_django import types
 from core.models import Post
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.utils.translation import gettext as _
+from graphql.error import GraphQLLocatedError
 
 class PostNodeType(types.DjangoObjectType):
 
@@ -47,14 +49,18 @@ class Query:
 
     @staticmethod
     def resolve_post(root, info, **kwargs):
-        if info.context.user.is_authenticated:        
-            return get_object_or_404(Post,
-                Q(pk=kwargs['pk']),
-                Q(privacy='PUB')|
-                Q(user__followers__in=[info.context.user], privacy='FOL'),
-            )
-        else:
-            return get_object_or_404(
-                Post,
-                privacy='PUB',
-            )
+        try:
+            if info.context.user.is_authenticated:
+                return Post.objects.get(
+                    Q(pk=kwargs['pk']),
+                    Q(privacy='PUB')|
+                    Q(user=info.context.user, privacy='PRI')|
+                    Q(user__followers__in=[info.context.user], privacy='FOL'),
+                )
+            else:
+                return Post.objects.get(
+                    privacy='PUB',
+                    pk=kwargs['pk']
+                )
+        except Post.DoesNotExist:
+            raise Exception(_('Postagem não encontrada'))

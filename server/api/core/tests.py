@@ -135,3 +135,57 @@ class PostGraphqlTestCase(MyTestCase):
                 }
             }
         }
+
+    def test_get_one_post_pri(self):
+        pri = Post.objects.filter(privacy='PRI').first()
+        executed = self.client.execute('''
+            query getPost($pk:ID!){
+                post(pk:$pk){
+                    privacy
+                    user {
+                        username
+                    }
+                }
+            }
+        ''', variables={ 'pk': pri.pk })
+        assert executed == {
+            'data': {
+                'post': {
+                    'privacy': 'PRI',
+                    'user': {
+                        'username': self.user.username
+                    }
+                }
+            }
+        }
+
+    def test_get_does_not_exist_post(self):
+        executed = self.client.execute('''
+            query getPost($pk:ID!){
+                post(pk:$pk){
+                    privacy
+                    user {
+                        username
+                    }
+                }
+            }
+        ''', variables={ 'pk': 99999 })
+        assert executed == {
+            'errors': [
+                {
+                    'message': 'Postagem não encontrada',
+                    'locations': [
+                        {
+                            'line': 3, 
+                            'column': 17
+                        }
+                    ],
+                    'path': ['post']
+                }
+            ], 
+            'data': {
+                'post': None
+            }
+        }
+
+    
