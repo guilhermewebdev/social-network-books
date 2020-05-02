@@ -1,6 +1,7 @@
 from graphene.test import format_execution_result, default_format_error
 from graphql_jwt.testcases import JSONWebTokenTestCase, JSONWebTokenClient
 from promise import Promise, is_thenable
+from json import loads, dumps
 
 class MyClient(JSONWebTokenClient):
 
@@ -15,7 +16,7 @@ class MyClient(JSONWebTokenClient):
         executed = super().execute(query, variables=variables, **extra)
         if is_thenable(executed):
             return Promise.resolve(executed).then(self.format_result)
-        return self.format_result(executed)
+        return dict(loads(dumps(self.format_result(executed))))
 
 class MyTestCase(JSONWebTokenTestCase):
     client_class = MyClient

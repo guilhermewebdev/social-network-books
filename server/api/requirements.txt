@@ -22,3 +22,4 @@ google-cloud-storage
 
 # Data manipulation
 Pillow
+graphene-file-upload

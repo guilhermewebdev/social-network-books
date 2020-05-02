@@ -1,10 +1,18 @@
 import graphene
+
 from graphene_django import types
+
+from graphql.error import GraphQLLocatedError
+
 from core.models import Post
+
+from graphene_file_upload.scalars import Upload
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils.translation import gettext as _
-from graphql.error import GraphQLLocatedError
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
 class PostNodeType(types.DjangoObjectType):
 
@@ -72,3 +80,29 @@ class Query:
                 )
         except Post.DoesNotExist:
             raise Exception(_('Postagem não encontrada'))
+
+class PostCreationInput(graphene.InputObjectType):
+    text = graphene.String(required=True)
+    image = Upload()
+    privacy = graphene.String(required=True)
+
+class PostCreationMutation(graphene.Mutation):
+    post = graphene.Field(PostNodeType)
+
+    def mutate(root, info, **kwargs):
+        try:
+            post = Post(
+                **kwargs['input'],
+                user=info.context.user
+            )
+            post.full_clean()
+            post.save()
+            return PostCreationMutation(post=post)
+        except ValidationError:
+            raise Exception(_('Dados inválidos'))
+
+    class Arguments:
+        input = PostCreationInput(required=True)
+
+class Mutation:
+    create_post = PostCreationMutation.Field()

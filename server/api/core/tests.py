@@ -238,5 +238,38 @@ class PostGraphqlTestCase(MyTestCase):
                 'post': None
             }
         }
-
     
+    def test_create(self):
+        executed = self.client.execute('''
+            mutation createPost(
+                $text: String!,
+                $privacy: String!
+            ){
+                createPost(input: {
+                    text: $text
+                    privacy: $privacy
+                }){
+                    post{
+                        user {
+                            username
+                        }
+                        privacy
+                    }
+                }
+            }
+        ''', variables={
+            'text': 'Lorem Ipsum',
+            'privacy': 'PUB'
+        })
+        assert executed == {
+            'data': {
+                'createPost': {
+                    'post': {
+                        'user': {
+                            'username': self.user.username
+                        },
+                        'privacy': 'PUB',
+                    }
+                }
+            }
+        }
