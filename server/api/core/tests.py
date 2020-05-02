@@ -314,3 +314,35 @@ class PostGraphqlTestCase(MyTestCase):
                 }
             }
         }
+
+    def test_other_user_post_update(self):
+        post = Post.objects.filter(privacy='PUB', user=self.user2).first()
+        executed = self.client.execute('''
+            mutation updatePost(
+                $text: String,
+                $privacy: String,
+                $post: ID!
+            ){
+                updatePost(input: {
+                    text: $text
+                    privacy: $privacy
+                    post: $post
+                }){
+                    post{
+                        user {
+                            username
+                        }
+                        privacy
+                        text
+                    }
+                }
+            }
+        ''', variables={
+            'text': 'Lorem Ipsum',
+            'privacy': 'PRI',
+            'post': post.pk
+        })
+
+        assert executed['errors'][0]['message'] == 'Postagem não encontrada'
+        assert len(executed['errors']) == 1
+        assert executed['data']['updatePost'] == None
