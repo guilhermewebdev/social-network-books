@@ -8,6 +8,8 @@ from core.models import Post
 
 from graphene_file_upload.scalars import Upload
 
+from graphql_jwt.decorators import login_required
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils.translation import gettext as _
@@ -89,6 +91,7 @@ class PostCreationInput(graphene.InputObjectType):
 class PostCreationMutation(graphene.Mutation):
     post = graphene.Field(PostNodeType)
 
+    @login_required
     def mutate(root, info, **kwargs):
         try:
             post = Post(
@@ -104,5 +107,34 @@ class PostCreationMutation(graphene.Mutation):
     class Arguments:
         input = PostCreationInput(required=True)
 
+class PostUpdateInput(graphene.InputObjectType):
+    text = graphene.String()
+    privacy = graphene.String()
+    post = graphene.ID(required=True)
+
+class PostUpdateMutation(graphene.Mutation):
+    post = graphene.Field(PostNodeType)
+
+    @login_required
+    def mutate(root, info, **kwargs):
+        try:
+            post = Post.objects.get(
+                pk=kwargs['input'].pop('post'),
+                user=info.context.user
+            )
+            for index, value in kwargs['input'].items():
+                setattr(post, index, value)
+            post.full_clean()
+            post.save(update_fields=list(kwargs['input']))
+            return PostUpdateMutation(post=post)
+        except Post.DoesNotExist:
+            raise Exception(_('Postagem não encontrada'))
+        except ValidationError:
+            raise Exception(_('Dados Inválidos'))
+
+    class Arguments:
+        input = PostUpdateInput(required=True)
+
 class Mutation:
     create_post = PostCreationMutation.Field()
+    update_post = PostUpdateMutation.Field()

@@ -273,3 +273,44 @@ class PostGraphqlTestCase(MyTestCase):
                 }
             }
         }
+
+    def test_update(self):
+        post = Post.objects.filter(privacy='PUB', user=self.user).first()
+        executed = self.client.execute('''
+            mutation updatePost(
+                $text: String,
+                $privacy: String,
+                $post: ID!
+            ){
+                updatePost(input: {
+                    text: $text
+                    privacy: $privacy
+                    post: $post
+                }){
+                    post{
+                        user {
+                            username
+                        }
+                        privacy
+                        text
+                    }
+                }
+            }
+        ''', variables={
+            'text': 'Lorem Ipsum',
+            'privacy': 'PRI',
+            'post': post.pk
+        })
+        assert executed == {
+            'data': {
+                'updatePost': {
+                    'post': {
+                        'user': {
+                            'username': self.user.username
+                        },
+                        'privacy': 'PRI',
+                        'text': 'Lorem Ipsum'
+                    }
+                }
+            }
+        }

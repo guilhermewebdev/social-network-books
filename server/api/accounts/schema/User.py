@@ -75,6 +75,7 @@ class UserMutationCreate(graphene.Mutation):
             )
             for index in kwargs['input']:
                 setattr(user, index, kwargs['input'][index])
+            user.full_clean()
             user.save()
             return UserMutationCreate(user=user)
         except:
@@ -99,7 +100,8 @@ class UserMutationUpdate(graphene.Mutation):
             user = info.context.user
             for (index, content) in kwargs['input']:
                 setattr(user, index, content)
-            user.save(update_fields=dir(kwargs['input']))
+            user.full_clean()
+            user.save(update_fields=list(kwargs['input']))
             return UserMutationUpdate(user=user)
         except:
             raise GraphQLError(_('Erro ao atualizar o usuário'))
