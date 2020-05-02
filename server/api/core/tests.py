@@ -346,3 +346,37 @@ class PostGraphqlTestCase(MyTestCase):
         assert executed['errors'][0]['message'] == 'Postagem não encontrada'
         assert len(executed['errors']) == 1
         assert executed['data']['updatePost'] == None
+
+    def test_deletion_post(self):
+        post = Post.objects.filter(privacy='PUB', user=self.user).first()
+        executed = self.client.execute('''
+            mutation deletePost(
+                $post: ID!
+            ){
+                deletePost(post: $post){
+                    deleted
+                }
+            }
+        ''', variables={ 'post': post.pk })
+        assert executed == {
+            'data': {
+                'deletePost': {
+                    'deleted': True
+                }
+            }
+        }
+
+    def test_deletion_other_user_post(self):
+        post = Post.objects.filter(privacy='PRI', user=self.user2).first()
+        executed = self.client.execute('''
+            mutation deletePost(
+                $post: ID!
+            ){
+                deletePost(post: $post){
+                    deleted
+                }
+            }
+        ''', variables={ 'post': post.pk })
+
+        assert len(executed['errors']) == 1
+        assert executed['errors'][0]['message'] == 'Postagem não encontrada'

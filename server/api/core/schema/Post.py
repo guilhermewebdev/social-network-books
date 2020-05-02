@@ -135,6 +135,23 @@ class PostUpdateMutation(graphene.Mutation):
     class Arguments:
         input = PostUpdateInput(required=True)
 
+class PostDeletionMutation(graphene.Mutation):
+    deleted = graphene.Boolean(required=True)
+
+    def mutate(root, info, **kwargs):
+        try:
+            Post.objects.get(
+                pk=kwargs['post'],
+                user=info.context.user,
+            ).delete()
+            return PostDeletionMutation(deleted=True)
+        except Post.DoesNotExist:
+            raise Exception(_('Postagem não encontrada'))
+
+    class Arguments:
+        post = graphene.ID(required=True)
+
 class Mutation:
     create_post = PostCreationMutation.Field()
     update_post = PostUpdateMutation.Field()
+    delete_post = PostDeletionMutation.Field()
