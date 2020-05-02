@@ -57,7 +57,6 @@ class Post(models.Model):
         ('PRI', _('Privado')),
         ('FOL', _('Seguidores')),
     )
-
     text = models.TextField(
         verbose_name=_('Texto da postagem'),
         max_length=2000,
@@ -149,6 +148,10 @@ class Reaction(models.Model):
         related_name='reactions',
         verbose_name=_('Comentador'),
     )
+
+    class Meta:
+        verbose_name = _('Reação')
+        verbose_name_plural = _('Reações')
 
 class PostReaction(Reaction):
     post = models.ForeignKey(
