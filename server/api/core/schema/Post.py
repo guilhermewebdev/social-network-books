@@ -10,7 +10,7 @@ from graphene_file_upload.scalars import Upload
 
 from graphql_jwt.decorators import login_required
 
-from . import Comment
+from . import Comment, Reactions
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -21,6 +21,7 @@ from django.contrib.auth import get_user_model
 class PostNodeType(
     types.DjangoObjectType,
     Comment.Query,
+    Reactions.Query,
 ):
 
     class Meta:

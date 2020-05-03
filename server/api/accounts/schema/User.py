@@ -1,11 +1,17 @@
 from graphene_django import types
+
 import graphene
-from django.utils.translation import gettext as _
+
 from graphql import GraphQLError
-from django.contrib.auth import get_user_model
+
 from graphql_jwt.decorators import login_required
-from django.shortcuts import get_object_or_404, get_list_or_404
 import graphql_jwt
+
+from django.utils.translation import gettext as _
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404, get_list_or_404
+from django.db.models import Q
+
 from core.schema.Post import PostConnection
 
 User = get_user_model()
@@ -15,7 +21,20 @@ class UserType(types.DjangoObjectType):
     posts = graphene.ConnectionField(PostConnection)
 
     def resolve_posts(parent, info, **kwargs):
-        return parent.posts.all()
+        if info.user.is_authenticated:
+            return list(parent.posts.filter(
+                Q(user=info.context.user, privacy='PRI')|
+                Q(
+                    Q(user__followers__in=[info.context.user])|
+                    Q(user=info.context.user),
+                    Q(privacy='FOL')|Q(privacy='PUB')
+                )
+            ).order_by('-date').all().iterator())
+        return parent.posts.filter(privacy='PUB').all()
+    
+    @login_required
+    def resolve_email(parent, info):
+        return parent.email
 
     class Meta:
         model = User
@@ -40,7 +59,6 @@ class UserQuery:
     me = graphene.Field(UserType)
 
     @staticmethod
-    @login_required
     def resolve_user(parent, info, pk):
         return get_object_or_404(User, pk=pk)
 
