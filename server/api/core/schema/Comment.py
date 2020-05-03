@@ -58,6 +58,7 @@ class ComentCreationInput(graphene.InputObjectType):
 class CommentCreationMutation(graphene.Mutation):
     comment = graphene.Field(CommentNodeType)
 
+    @login_required
     def mutate(root, info, **kwargs):
         try:
             post = Post.objects.get(
@@ -84,5 +85,26 @@ class CommentCreationMutation(graphene.Mutation):
     class Arguments:
         input = ComentCreationInput(required=True)
 
+class CommentUpdateInput(graphene.InputObjectType):
+    text = graphene.String(required=True)
+    comment = graphene.ID(required=True)
+
+class CommentUpdateMutation(graphene.Mutation):
+    comment = graphene.Field(CommentNodeType)
+
+    def mutate(root, info, **kwargs):
+        comment = Comment.objects.get(
+            pk=kwargs['input'].pop('comment'),
+            user=info.context.user
+        )
+        comment.text = kwargs['input']['text']
+        comment.full_clean()
+        comment.save()
+        return CommentCreationMutation(comment=comment)
+            
+    class Arguments:
+        input = CommentUpdateInput(required=True)
+
 class Mutation:
     comment_post = CommentCreationMutation.Field()
+    update_comment = CommentUpdateMutation.Field()

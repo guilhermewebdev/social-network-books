@@ -483,3 +483,30 @@ class CommentsGraphqlTestCase(MyTestCase):
         assert len(executed['errors']) == 1
         assert executed['errors'][0]['message'] == 'Postagem não encontrada'
     
+    def test_update_comment(self):
+        comment = self.user.comments.all().first()
+        executed = self.client.execute('''
+            mutation updateComment(
+                $comment: ID!
+                $text: String!
+            ){
+                updateComment(input: {
+                    text: $text
+                    comment: $comment
+                }){
+                    comment {
+                        text
+                    }
+                }
+            }
+        ''', variables={ 'comment': comment.pk, 'text': 'Updated Comment' })
+
+        assert executed == {
+            'data': {
+                'updateComment': {
+                    'comment': {
+                        'text': 'Updated Comment'
+                    }
+                }
+            }
+        }
