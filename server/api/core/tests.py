@@ -567,7 +567,6 @@ class PostReactionsTestCase(MyTestCase):
 
     def test_list_reactions(self):
         self.react(self.post, self.user2)
-        self.react(self.post2, self.user)
         
         executed = self.client.execute('''
             query {
@@ -590,3 +589,30 @@ class PostReactionsTestCase(MyTestCase):
 
         assert not 'errors' in executed
         assert len(executed['data']['posts']['edges'][0]['node']['reactions']) == 1
+
+    def test_react_post(self):
+        executed = self.client.execute('''
+            mutation react(
+                $reaction:String!,
+                $post:ID!
+            ){
+                react(input: {
+                    reaction: $reaction
+                    post: $post
+                }){
+                    reaction {
+                        reaction
+                    }
+                }
+            }
+        ''', variables={ 'post': self.post.pk, 'reaction': 'LI' })
+
+        assert executed == {
+            'data': {
+                'react': {
+                    'reaction': {
+                        'reaction': 'LI'
+                    }
+                }
+            }
+        }

@@ -4,7 +4,7 @@ from graphene_django import types
 
 from graphql.error import GraphQLLocatedError
 
-from core.models import PostReaction
+from core.models import PostReaction, Post
 
 from graphene_file_upload.scalars import Upload
 
@@ -26,6 +26,7 @@ class PostReactionType(types.DjangoObjectType):
             'updated',
             'user',
         )
+
 
 class Query:
     reactions = graphene.List(PostReactionType)
@@ -49,3 +50,38 @@ class Query:
     def resolve_reactions(parent, info):
         return list(parent.reactions.all().iterator())
 
+
+class PostReactionInput(graphene.InputObjectType):
+    reaction = graphene.String(required=True)
+    post = graphene.ID(required=True)    
+
+
+class PostReactionMutation(graphene.Mutation):
+    reaction = graphene.Field(PostReactionType)
+
+    @login_required
+    def mutate(root, info, **kwargs):
+        reaction = PostReaction(
+            reaction=kwargs['input']['reaction'],
+            post=Post.objects.get(
+                Q(pk=kwargs['input']['post']),
+                Q(privacy='PUB')|
+                Q(user=info.context.user, privacy='PRI')|
+                Q(
+                    Q(user__followers__in=[info.context.user])|
+                    Q(user=info.context.user),
+                    Q(privacy='FOL')
+                ),
+            ),
+            user=info.context.user
+        )
+        reaction.full_clean()
+        reaction.save()
+        return PostReactionMutation(reaction=reaction)
+
+    class Arguments:
+        input = PostReactionInput(required=True)
+
+
+class Mutation:
+    react = PostReactionMutation.Field()
