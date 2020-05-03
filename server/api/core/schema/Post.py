@@ -33,7 +33,6 @@ class PostNodeType(
             'user',
             'image',
             'privacy',
-            'comments',
         )
         interfaces = (graphene.Node,)
 

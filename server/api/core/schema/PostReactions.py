@@ -28,7 +28,7 @@ class PostReactionType(types.DjangoObjectType):
         )
 
 class Query:
-    reactions = graphene.Field(PostReactionType)
+    reactions = graphene.List(PostReactionType)
     reactions_avaliables = graphene.List(graphene.String)
     reactions_amount = graphene.Int(
         required=True,
@@ -40,13 +40,12 @@ class Query:
         return [a for (a, b) in PostReaction.REACTIONS]
 
     @staticmethod
-    def resolve_reactions_amount(parent, info, reaction):
+    def resolve_reactions_amount(parent, info, reaction=None):
         if reaction:
             return parent.reactions.filter(reaction=reaction).count()
         return parent.reactions.all().count()
 
     @staticmethod
     def resolve_reactions(parent, info):
-        return list(parent.reactions.all())
+        return list(parent.reactions.all().iterator())
 
-        

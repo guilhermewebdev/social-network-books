@@ -566,16 +566,27 @@ class PostReactionsTestCase(MyTestCase):
         return reaction
 
     def test_list_reactions(self):
+        self.react(self.post, self.user2)
+        self.react(self.post2, self.user)
+        
         executed = self.client.execute('''
             query {
                 posts {
                     edges {
                         node {
+                            reactionsAmount
+                            reactionsAvaliables
                             reactions {
-                                reactions {}
+                                reaction
+                                user {
+                                    username
+                                }
                             }
                         }
                     }
                 }
             }
         ''')
+
+        assert not 'errors' in executed
+        assert len(executed['data']['posts']['edges'][0]['node']['reactions']) == 1
