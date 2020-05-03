@@ -17,20 +17,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 class PostReactionType(types.DjangoObjectType):
-    amount = graphene.Int(
-        required=True,
-        reaction=graphene.String()
-    )
-    avaliables = graphene.List(graphene.String)
-
-    def resolve_avaliables(parent, info):
-        return [a for (a, b) in PostReaction.REACTIONS]
-
-    def resolve_amount(parent, info, reaction):
-        if reaction:
-            return parent.reactions.filter(reaction=reaction).count()
-        return parent.reactions.all().count()
-
+    
     class Meta:
         model = PostReaction
         fields = (
@@ -38,14 +25,28 @@ class PostReactionType(types.DjangoObjectType):
             'date',
             'updated',
             'user',
-            'post',
-            'amount',
-            'avaliables',
         )
 
 class Query:
     reactions = graphene.Field(PostReactionType)
+    reactions_avaliables = graphene.List(graphene.String)
+    reactions_amount = graphene.Int(
+        required=True,
+        reaction=graphene.String()
+    )
+
+    @staticmethod
+    def resolve_reactions_avaliables(parent, info):
+        return [a for (a, b) in PostReaction.REACTIONS]
+
+    @staticmethod
+    def resolve_reactions_amount(parent, info, reaction):
+        if reaction:
+            return parent.reactions.filter(reaction=reaction).count()
+        return parent.reactions.all().count()
 
     @staticmethod
     def resolve_reactions(parent, info):
-        return parent.reactions.all()
+        return list(parent.reactions.all())
+
+        

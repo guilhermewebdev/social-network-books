@@ -548,3 +548,34 @@ class CommentsGraphqlTestCase(MyTestCase):
                 }
             }
         }
+
+class PostReactionsTestCase(MyTestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='test')
+        self.user2 = User.objects.create_user(username='test2')
+        self.client.authenticate(self.user)
+        self.post = Post(text='Lorem Ipsum', user=self.user, privacy='PUB')
+        self.post.save()
+        self.post2 = Post(text='Lorem Ipsum', user=self.user2, privacy='PUB')
+        self.post2.save()
+  
+    def react(self, post, user, reaction='LI'):
+        reaction = PostReaction(post=post, user=user, reaction=reaction)
+        reaction.save()
+        return reaction
+
+    def test_list_reactions(self):
+        executed = self.client.execute('''
+            query {
+                posts {
+                    edges {
+                        node {
+                            reactions {
+                                reactions {}
+                            }
+                        }
+                    }
+                }
+            }
+        ''')

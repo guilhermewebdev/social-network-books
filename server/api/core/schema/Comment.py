@@ -11,7 +11,9 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
-class CommentNodeType(types.DjangoObjectType):
+class CommentNodeType(
+    types.DjangoObjectType,
+):
 
     class Meta:
         model = Comment

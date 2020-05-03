@@ -142,12 +142,6 @@ class Reaction(models.Model):
         auto_now_add=True,
         verbose_name=_('Última atualização')
     )
-    user = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name='reactions',
-        verbose_name=_('Comentador'),
-    )
 
     class Meta:
         verbose_name = _('Reação')
@@ -160,6 +154,15 @@ class PostReaction(Reaction):
         verbose_name=_('Reações'),
         related_name='reactions'
     )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='post_reactions',
+        verbose_name=_('Comentador'),
+    )
+
+    class Meta:
+        unique_together = ('post', 'user')
 
 class CommentReaction(Reaction):
     comment = models.ForeignKey(
@@ -168,3 +171,12 @@ class CommentReaction(Reaction):
         verbose_name=_('Reações'),
         related_name='reactions'
     )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='comment_reactions',
+        verbose_name=_('Comentador'),
+    )
+
+    class Meta:
+        unique_together = ('comment', 'user')
