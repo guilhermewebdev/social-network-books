@@ -390,6 +390,8 @@ class CommentsGraphqlTestCase(MyTestCase):
         self.client.authenticate(self.user)
         self.user.following.add(self.user3)
         self.post = Post(text='Lorem Ipsum', user=self.user3, privacy='PUB')
+        self.post2 = Post(text='Lorem Ipsum', user=self.user, privacy='PUB')
+        self.post2.save()
         self.post.save()
         self.create_comment(self.user)
         self.create_comment(self.user)
@@ -428,7 +430,7 @@ class CommentsGraphqlTestCase(MyTestCase):
         ''')
         
         assert not 'errors' in executed
-        assert len(executed['data']['posts']['edges']) == 1
+        assert len(executed['data']['posts']['edges']) == 2
         assert len(executed['data']['posts']['edges'][0]['node']['comments']['edges']) == 6
 
     def test_create_comment(self):
@@ -478,7 +480,6 @@ class CommentsGraphqlTestCase(MyTestCase):
             }
         ''', variables={ 'post': post.pk, 'text': 'Different comment' })
 
-        print(executed)
         assert 'errors' in executed
         assert len(executed['errors']) == 1
         assert executed['errors'][0]['message'] == 'Postagem não encontrada'
@@ -507,6 +508,43 @@ class CommentsGraphqlTestCase(MyTestCase):
                     'comment': {
                         'text': 'Updated Comment'
                     }
+                }
+            }
+        }
+
+    def test_delete_my_comment(self):
+        comment = self.user.comments.all().first()
+        executed = self.client.execute('''
+            mutation deleteComment($comment: ID!){
+                deleteComment(comment: $comment){
+                    deleted
+                }
+            }
+        ''', variables={ 'comment': comment.pk })
+       
+        assert executed == {
+            'data': {
+                'deleteComment': {
+                    'deleted': True
+                }
+            }
+        }
+
+    def test_delete_comment_on_my_post(self):
+        comment = Comment(user=self.user3, text='Test', post=self.post2)
+        comment.save()
+        executed = self.client.execute('''
+            mutation deleteComment($comment: ID!){
+                deleteComment(comment: $comment){
+                    deleted
+                }
+            }
+        ''', variables={ 'comment': comment.pk })
+        print(executed)
+        assert executed == {
+            'data': {
+                'deleteComment': {
+                    'deleted': True
                 }
             }
         }

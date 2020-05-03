@@ -105,6 +105,21 @@ class CommentUpdateMutation(graphene.Mutation):
     class Arguments:
         input = CommentUpdateInput(required=True)
 
+class CommentDeletionMutation(graphene.Mutation):
+    deleted = graphene.Boolean()
+
+    def mutate(root, info, **kwargs):
+        comment = Comment.objects.get(
+            Q(pk=kwargs['comment']),
+            Q(user=info.context.user)|Q(post__user=info.context.user)
+        )
+        comment.delete()
+        return CommentDeletionMutation(deleted=True)
+
+    class Arguments:
+        comment = graphene.ID(required=True)
+
 class Mutation:
     comment_post = CommentCreationMutation.Field()
     update_comment = CommentUpdateMutation.Field()
+    delete_comment = CommentDeletionMutation.Field()
