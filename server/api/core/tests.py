@@ -430,3 +430,56 @@ class CommentsGraphqlTestCase(MyTestCase):
         assert not 'errors' in executed
         assert len(executed['data']['posts']['edges']) == 1
         assert len(executed['data']['posts']['edges'][0]['node']['comments']['edges']) == 6
+
+    def test_create_comment(self):
+        executed = self.client.execute('''
+            mutation createComment(
+                $post: ID!
+                $text: String!
+            ){
+                commentPost(input:{
+                    post: $post
+                    text: $text
+                }){
+                    comment {
+                        text
+                    }
+                }
+            }
+        ''', variables={ 'post': self.post.pk, 'text': 'Different comment' })
+
+        assert not 'errors' in executed
+        assert executed == {
+            'data': {
+                'commentPost': {
+                    'comment': {
+                        'text': 'Different comment'
+                    }
+                }
+            }
+        }
+    
+    def test_comment_private_post(self):
+        post = Post(text='Lorem Ipsum', user=self.user3, privacy='PRI')
+        post.save()
+        executed = self.client.execute('''
+            mutation createComment(
+                $post: ID!
+                $text: String!
+            ){
+                commentPost(input:{
+                    post: $post
+                    text: $text
+                }){
+                    comment {
+                        text
+                    }
+                }
+            }
+        ''', variables={ 'post': post.pk, 'text': 'Different comment' })
+
+        print(executed)
+        assert 'errors' in executed
+        assert len(executed['errors']) == 1
+        assert executed['errors'][0]['message'] == 'Postagem não encontrada'
+    
